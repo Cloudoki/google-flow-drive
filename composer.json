@@ -1,0 +1,29 @@
+{
+	"name": "cloudoki/google-flow-drive",
+	"description": "Google Flow Drive",
+	"keywords": ["google","drive","wordpress","ghost"],
+	"homepage": "http://github.com/Cloudoki/google-flow-drive",
+	"license": "MIT",
+	"type": "project",
+	"authors": [
+		{
+			"name": "Koen Betsens",
+			"email": "koen@cloudoki.com",
+			"homepage": "http://www.cloudoki.com",
+			"role": "Architect"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0",
+		"google/apiclient": "1.0.*@beta"
+	},
+	"config": {
+		"preferred-install": "dist"
+	},
+	"autoload": {
+		"psr-0": {
+			"Cloudoki\\Flowdrive\\": "src/"
+		}
+	},
+    "minimum-stability": "dev"
+}
