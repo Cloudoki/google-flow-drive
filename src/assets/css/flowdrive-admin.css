@@ -1,0 +1,97 @@
+.method-compare .card {
+	margin: 10px;
+	min-width: 35%;
+	max-width: 50%;
+	box-sizing: border-box;
+	float: left;
+}
+
+.method-compare .layer {
+	padding: 7px 2px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.method-compare button,
+.method-compare .folder {
+	padding: 4px 10px;
+	border: 1px solid #ccc; 
+	border-radius: 3px;
+	background: #efefef;
+	box-shadow: 0 1px 2px rgba(0,0,0,.2), inset 0px 1px 0px white;
+	cursor: default;
+	outline:0;
+}
+
+.method-compare .folder.grey-folder {
+	margin-left: 2px;
+	padding: 4px 8px;
+	border-color: #ddd;
+	background: #e9f8fd;
+	color: #77a5a8;
+	box-shadow: none;
+}
+
+.method-compare span[data-flag].folder.grey-folder,
+.method-compare .folder.grey-folder:hover,
+.method-compare .folder.grey-folder:active {
+	border-color: #97bdbe;
+	color: #528889;
+	box-shadow: none;
+}
+
+.method-compare .folder.selected {
+	box-shadow: none;
+	background: #116399;
+	border-color: #116399;
+	color: white;
+	
+}
+
+.method-compare button:hover,
+.method-compare .folder:hover { border-color: #999; }
+
+.method-compare button:active,
+.method-compare .folder:active { box-shadow: inset 0px 1px 0px rgba(0,0,0,.2); }
+
+.method-compare .item-list li {
+	background: #ebfcfb;
+	border-radius: 3px;
+	padding: 4px 10px;
+}
+
+.method-compare .item-list li:hover {
+	background: #eee;
+	cursor: default;
+}
+
+.method-compare .item-list li.category {
+	background: none;
+	padding: 4px 0;
+	font-style: italic;
+}
+
+.thumbnails-list li {
+	width: 22.5%;
+	height: 90px;
+	margin: 5px 1.25%;
+	border-radius: 3px;
+	background: no-repeat center;
+	background-size: cover;
+	box-sizing: border-box;
+	float: left;
+	opacity: .25;
+}
+.thumbnails-list li.active { opacity: 1; }
+
+.submit-row {
+	clear: both;
+	padding: 10px;
+	margin: 10px 0;
+	background: #efefef;
+	border-radius: 4px;
+}
+
+.force-end {
+	clear: both;
+}

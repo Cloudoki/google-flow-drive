@@ -4,9 +4,103 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "97a249376ad46e810be25d0c3fb67188",
-    "content-hash": "85d87a4e73d049c4d4735c70b2a03f7d",
+    "hash": "7be390686d431c942323706100162e8b",
+    "content-hash": "90e1a382d9e18b146c4f5949aacfb4b0",
     "packages": [
+        {
+            "name": "components/jquery",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/components/jquery.git",
+                "reference": "7b1d1104656a092423fbfba13c5920e9bbba290c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/components/jquery/zipball/7b1d1104656a092423fbfba13c5920e9bbba290c",
+                "reference": "7b1d1104656a092423fbfba13c5920e9bbba290c",
+                "shasum": ""
+            },
+            "type": "component",
+            "extra": {
+                "component": {
+                    "scripts": [
+                        "jquery.js"
+                    ],
+                    "files": [
+                        "jquery.min.js",
+                        "jquery.min.map",
+                        "jquery-migrate.js",
+                        "jquery-migrate.min.js"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "John Resig",
+                    "email": "jeresig@gmail.com"
+                }
+            ],
+            "description": "jQuery JavaScript Library",
+            "homepage": "http://jquery.com",
+            "time": "2015-05-08 05:04:47"
+        },
+        {
+            "name": "drmonty/chosen",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/drmonty/chosen.git",
+                "reference": "cfc9481dcb3541e849a33828e424cbc5d0861d4f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/drmonty/chosen/zipball/cfc9481dcb3541e849a33828e424cbc5d0861d4f",
+                "reference": "cfc9481dcb3541e849a33828e424cbc5d0861d4f",
+                "shasum": ""
+            },
+            "require": {
+                "components/jquery": ">=1.4.4"
+            },
+            "type": "component",
+            "extra": {
+                "component": {
+                    "scripts": [
+                        "chosen.jquery.js"
+                    ],
+                    "files": [
+                        "js/chosen.jquery.min.js",
+                        "js/chosen.proto.min.js",
+                        "css/chosen.min.css",
+                        "css/*.png"
+                    ],
+                    "shim": {
+                        "deps": [
+                            "jquery"
+                        ]
+                    }
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Chosen is a library for making long, unwieldy select boxes more friendly.",
+            "homepage": "http://harvesthq.github.io/chosen/",
+            "keywords": [
+                "dropdown",
+                "form",
+                "input",
+                "multiselect",
+                "select",
+                "ui"
+            ],
+            "time": "2015-03-30 06:20:49"
+        },
         {
             "name": "google/apiclient",
             "version": "1.0.6-beta",
@@ -51,13 +145,60 @@
                 "google"
             ],
             "time": "2014-09-30 19:33:59"
+        },
+        {
+            "name": "mustache/mustache",
+            "version": "v2.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bobthecow/mustache.php.git",
+                "reference": "c745b01956caf27d26b55a72a90aff56bc169cd6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bobthecow/mustache.php/zipball/c745b01956caf27d26b55a72a90aff56bc169cd6",
+                "reference": "c745b01956caf27d26b55a72a90aff56bc169cd6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.4"
+            },
+            "require-dev": {
+                "fabpot/php-cs-fixer": "~1.6",
+                "phpunit/phpunit": "~3.7|~4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Mustache": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Justin Hileman",
+                    "email": "justin@justinhileman.info",
+                    "homepage": "http://justinhileman.com"
+                }
+            ],
+            "description": "A Mustache implementation in PHP.",
+            "homepage": "https://github.com/bobthecow/mustache.php",
+            "keywords": [
+                "mustache",
+                "templating"
+            ],
+            "time": "2015-08-15 19:23:13"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "google/apiclient": 10
+        "google/apiclient": 10,
+        "drmonty/chosen": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

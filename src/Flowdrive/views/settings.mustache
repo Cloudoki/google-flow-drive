@@ -1,0 +1,145 @@
+<div class="wrap">
+	<h2>{{title}}</h2>
+	
+	<form action="">
+		<input type="hidden" name="page" value="{{page}}">
+		<input type="hidden" name="updating" value="1">
+	
+		<div class="card">
+			<h3>General Options</h3>
+			
+			<h4>Behaviour</h4>
+			<ul>
+				<li>
+					<select id='flowdrive_method' name="flowdrive_method">
+						<option>Compare</option>
+						<option>Automatic</option>
+						<option>Master</option>
+						<option>Slave</option>
+					</select>
+					<label for='flowdrive_method'>Wordpress versus Flow Drive</label>
+				</li>
+			</ul>
+			
+			<hr>
+			
+			<ul>	
+				<li>
+					<input id='flowdrive_md_convert' name="flowdrive_md_convert" type="checkbox" {{#options.flowdrive_md_convert}} "checked='checked'" {{/options.flowdrive_md_convert}}>
+					<label for='flowdrive_md_convert'>
+						Convert posts to MD
+					</label>
+					<br>&nbsp; &nbsp; &nbsp; &nbsp;<a href="#" target="_blank">Read more about md</a>
+				</li>
+			</ul>
+			
+			<hr>
+			
+			<ul>	
+				<li>
+					<input id='flowdrive_soft_delete' name="flowdrive_soft_delete" type="checkbox" {{#options.flowdrive_soft_delete}} "checked='checked'" {{/options.flowdrive_soft_delete}}>
+					<label for='flowdrive_soft_delete'>
+						Save removed posts
+					</label>
+				</li>
+			</ul>
+			
+			<hr>
+			<h4>Media</h4>
+			<ul>
+				<li>
+					<input id='flowdrive_max_attach' name="flowdrive_max_attach" type="number" min="0" max="999" value="{{options.flowdrive_max_attach}}">
+					<label for='flowdrive_max_attach'>
+						 attached images max.
+					</label>
+				</li>
+				
+				<li>
+					<input id='flowdrive_compress' name="flowdrive_compress" type="checkbox" {{#options.flowdrive_compress}} "checked='checked'" {{/options.flowdrive_compress}}>
+					<label for='flowdrive_compress'>
+						Compress images to 1920px wide web formats (jpg/png)
+					</label>
+				</li>
+			</ul>
+			
+			<input type="submit" class="button action" value="Update">
+
+		</div>
+		
+		<div class="card">
+			<h3>Smart folders</h3>
+			
+			Start by selecting your base folder, followed by optional (taxonomy based) smart folders.
+			<br><br>
+			
+			<select id="flowdrive_basefolder" name="flowdrive_basefolder">
+				<option>Base folder...</option>
+			</select>
+			
+			<button>+</button>
+						
+			<hr>
+			<input type="submit" class="button action" value="Update">
+		</div>
+		
+		<div class="card">
+			<h3>Drive account</h3>
+			
+			<div id='account-name'>Retrieving info...</div>
+			
+			<hr>
+			
+			<input type="submit" id="log_button" name="log_button" class="button action" value="Log out">
+			
+		</div>
+	</form>
+	
+	<script type="text/javascript">
+		
+		jQuery('.card').hide();
+		
+		// request account profile @ API
+		jQuery(document).ready(function($) {
+			
+			var basefolder = "{{options.flowdrive_basefolder}}";
+			
+			// Get profile
+			jQuery.get(ajaxurl, {'action': 'flowdrive_get_profile'}, function(response) 
+			{
+				var set = JSON.parse(response);
+				
+				if(!set.login)
+				{
+					$('.card').show();
+					$("#account-name").html('Connected to ' + set.profile);
+					
+					getbaseFolders ();
+				
+				} else $('.card').first().show().html("<h3>Log in</h3><a href='" + set.login + "' class='button'>Google Drive</a>");
+				
+			});
+
+			// Get base folders
+			function getbaseFolders()
+			{
+				jQuery.get(ajaxurl, {'action': 'flowdrive_get_base_folders'}, function(response) 
+				{
+					var set = JSON.parse(response);
+					
+					for (key in set)
+	
+						$("#flowdrive_basefolder").append('<option value="' + key + '">' + set[key] + '</option>');
+					
+					// Default fallback
+					$("#flowdrive_basefolder").append('<option disabled>────────</option>').append('<option value="new">Wordpress</option>');
+					
+					// Select existing
+					if(basefolder) $("#flowdrive_basefolder option[value='" + basefolder + "']").attr('selected','selected');
+				});
+			}
+			
+			
+		});
+		
+	</script>
+</div>

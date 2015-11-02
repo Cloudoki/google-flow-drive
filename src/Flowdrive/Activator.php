@@ -31,11 +31,15 @@ class Activator
 	public static function generate_options ()
 	{
 		// View options
-		add_option("flowdrive_method", 'compare'); // Compare | Automatic | Master | Slave
+		add_option("flowdrive_method", 'Compare'); // Compare | Automatic | Master | Slave
+		
+		add_option("flowdrive_basefolder", '');
 		
 		add_option("flowdrive_md_convert", '1'); // 1 | 0
 		
-		add_option("flowdrive_max_attach", '{}'); // Define formats and cpt's first
+		add_option("flowdrive_max_attach", '10'); // min 0, max 999
+		
+		add_option("flowdrive_compress", '1'); // 1 | 0
 		
 		add_option("flowdrive_soft_delete", '1'); // 1 | 0
 	}

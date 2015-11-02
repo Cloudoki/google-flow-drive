@@ -15,14 +15,16 @@
 	],
 	"require": {
 		"php": ">=5.4.0",
-		"google/apiclient": "1.0.*@beta"
+		"google/apiclient": "1.0.*@beta",
+		"mustache/mustache": "~2.9",
+		"drmonty/chosen": "dev-master"
 	},
 	"config": {
 		"preferred-install": "dist"
 	},
 	"autoload": {
-		"psr-0": {
-			"Cloudoki\\Flowdrive\\": "src/"
+		"psr-4": {
+            "Cloudoki\\": "src/"
 		}
 	},
     "minimum-stability": "dev"

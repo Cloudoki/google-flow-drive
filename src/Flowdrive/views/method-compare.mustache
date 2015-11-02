@@ -1,0 +1,242 @@
+<div class="wrap method-compare">
+	<h2>{{title}}</h2>
+	
+	<div id='start-card' class='card'>
+		<h3>Compare</h3>
+		<button class='start'>Start Flow</button>
+	</div>
+	
+	<div id="progress">
+		<div class='state'></div>
+	</div>
+	
+	<div id='wordpress-pane' class='card'>
+		<h3></h3>
+	</div>
+	
+	<div id='flowdrive-pane' class='card'>
+		<h3></h3>
+	</div>
+	
+	<div class="force-end"></div>
+</div>
+<script type="text/javascript">
+	
+	var basefolder = '{{flowdrive_basefolder}}';
+	var basepane = '#flowdrive-pane';
+	var wppane = '#wordpress-pane';
+	var taxonomy = '';
+	var post_type = '';
+	var folder = '';
+	
+	var structure = [
+		{taxonomy: 'magazine', multiple: true},
+		{folder: 'Production'},
+		{folder: 'content'},
+		{
+			flag: true,
+			posttype: [
+				{type: 'advertorial', folder: 'advertorial'},
+				{type: 'calendar', folder: 'agenda'},
+				{type: 'post', folder: 'articles'},
+				{type: 'product', folder: 'production'}
+			]
+		},
+		{field: 'title', source: 'name', container: true, post: {'file-ext': ['.txt', '.doc', '.docx', '.md']}, excerpt: {'name-regex': ['intro', 'contents']}},
+		{folder: ['images','media'], container: true, media: {'file-ext': ['.jpg', '.jpeg', '.png']}}
+	];
+			
+	// request account profile @ API
+	jQuery(document).ready(function($) {
+		
+		$('button.start').on('click', function (){
+			
+			// Hide start, show progress
+			$('#start-card').hide ();
+			$('#progress').show ();
+			
+			$('#flowdrive-pane').html("<h3>Select Layer</h3>");
+			
+			// Load ajax
+			getLayer(basefolder, 0);
+		});
+	});
+	
+	function getLayer (folder, depth)
+	{
+		xget('get_layer', {'folder': folder}, function(set) 
+		{	
+			for(key in set) buildLayer (key, set[key], depth);
+		});
+	}
+	
+	function buildLayer (key, title, depth)
+	{
+		// grouped layer
+		var layer = jQuery("<span class='layer'></span>").appendTo(basepane);
+		
+		// Base taxonomy
+		jQuery("<span class='folder' data-folder='" + key + "'>" + title + "</span>").appendTo(layer).on('click', function (el)
+		{
+			folder = jQuery(this).data('folder');
+			taxonomy = jQuery(this).text ();
+			
+			if(folder) {
+				
+				var parent = jQuery(this).addClass('selected').parent();
+				
+				jQuery("<button>Compare</span>").appendTo(parent).on('click', compare);
+				
+				nextFlag (folder, depth+1);
+			}
+		});
+		
+		// grey children
+		for (n in structure) 
+			
+			if(n > depth)
+			{
+				// Folder
+				if(structure[n].folder) var span = jQuery("<span class='folder grey-folder'>" + (typeof structure[n].folder == "string"? structure[n].folder: structure[n].folder.join(' | ')) + "</span>").appendTo(layer);
+				
+				// Post types
+				else if(structure[n].posttype) var span = jQuery("<span class='folder grey-folder'><i>post-type</i></span>").appendTo(layer);
+				
+				// Post field
+				else if(structure[n].field) var span = jQuery("<span class='folder grey-folder'>field: <i>" + structure[n].field + "</i></span>").appendTo(layer);
+				
+				// Flag decision
+				if (structure[n].flag) span.attr('data-flag', n)
+			}		
+	}
+	
+	function nextFlag (base, depth)
+	{
+		var span = jQuery(basepane).find("span[data-flag]").removeClass ('folder grey-folder').html ('');
+		var n = span.data('flag');
+		var level = structure[n];
+		
+		// list desired folder
+		if(typeof level.posttype == 'object')
+		{
+			var select = jQuery("<select id='posttype'></select>").appendTo(span)
+			
+			for(n in level.posttype)
+				select.append("<option>" + level.posttype[n].folder + "</option>");
+			
+			select.chosen();
+		}
+	}
+	
+	function compare ()
+	{
+		var flow = {
+			selected: folder, 
+			flag: jQuery('#posttype').val()
+		};
+		
+		// Get items list
+		xget('compare', flow, function(set) 
+		{	
+			results.html('');
+			
+			for(cat in set)
+			{	
+				results.append("<li class='category'>" + cat + "</li>");
+				
+				for (id in set[cat])
+					
+					results.append("<li id='" + id + "' data-cat='" + cat + "'>" + set[cat][id].title + "</li>");
+			}
+			
+			results.find('li[id]').on('click', function (){
+				
+				fetchContent (this.id, jQuery(this).text(), jQuery(this).data('cat'));
+			});
+			
+			post_type = set.post_type;
+			
+		});
+		
+		// prep list
+		var results = jQuery("<ul class='item-list'>Retrieving folders from Drive...</ul>").appendTo ('#flowdrive-pane');
+	}
+	
+	function fetchContent (id, title, cat)
+	{
+		xget('get_folder_contents', {folderId: id, title: title}, displayContent)
+		
+		jQuery(wppane).html("Retreiving item...").attr('data-cat', cat);
+	}
+	
+	function displayContent (set)
+	{
+		jQuery(wppane).html("<h3>" + set.title + "</h3>");
+		var txlist = jQuery("<ul class='text-list'></ul>").appendTo(wppane);
+		var thlist = jQuery("<ul class='thumbnails-list'></ul>").appendTo(wppane);
+		var rawselect =  "<select><option value='0'>ignore...</option><option value='1'>main content</option><option value='2'>excerpt</option><option value='3'>captions</option></select>";
+		
+		// add texts
+		for(n in set.text)
+		
+			jQuery("<li></li>").appendTo(txlist).attr('data-download', set.text[n].download).html(set.text[n].title + rawselect);
+		
+		// add thumbnails
+		for(n in set.media)
+		
+			jQuery("<li></li>").appendTo(thlist).attr('id', n).attr('title', set.media[n].title).addClass('active').css('background-image', 'url(' + set.media[n].thumbnail + ')')
+				.on('click', function(){ jQuery(this).toggleClass('active') });
+			
+		var submit = jQuery("<div class='submit-row'><select><option>as draft</option></select></div>").appendTo(wppane);
+		
+		jQuery("<button>Compose</button>").appendTo(submit).on('click', function ()
+		{
+			// Files
+			var files = {};
+			jQuery('.text-list li').each(function(n, el)
+			{ 
+				if(jQuery(el).find('select').val() == '1') files.main = jQuery(el).data('download');
+				if(jQuery(el).find('select').val() == '2') files.excerpt = jQuery(el).data('download');
+			})
+			
+			// media
+			var media = [];
+			jQuery('.thumbnails-list li.active').each(function(n, el) { media.push(this.id)});
+			
+			var cat = jQuery(wppane).data('cat');
+			
+			xpost('post_item', {folderId: set.folderId, title: set.title, post_type: post_type, files: files, media: media, cats:[taxonomy, cat]}, postSuccess)
+		});
+	}
+	
+	function postSuccess (set)
+	{
+		jQuery(wppane).html("<span>Sit back, relax, the post is <strong>pending for approval</strong>.</span>");
+	}
+	
+	
+	function xget (action, params, callback)
+	{
+		if(!params) params = {};
+		
+		params.action = 'flowdrive_' + action;
+		
+		jQuery.get(ajaxurl, params, function(response)
+		{
+			callback (JSON.parse(response));
+		});
+	}
+	
+	function xpost (action, params, callback)
+	{
+		if(!params) params = {};
+		
+		params.action = 'flowdrive_' + action;
+		
+		jQuery.post(ajaxurl, params, function(response)
+		{
+			callback (JSON.parse(response));
+		});
+	}
+	
+</script>
