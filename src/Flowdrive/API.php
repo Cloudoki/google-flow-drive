@@ -1,7 +1,9 @@
 <?php
 namespace Cloudoki\Flowdrive;
 
-class API
+use Cloudoki\Flowdrive\DriveLayer;
+
+class API extends DriveLayer
 {
 	/**
 	 *	Ajax Calls
@@ -9,19 +11,10 @@ class API
 	 *
 	 *	Get the base folders
 	 */
-	public function getProfile ()
+	public function getUserProfile ()
 	{
 		// Get the API client and construct the service object.
-		$client = $this->getClient();
-		$service = new \Google_Service_Drive($client);
-		$about = $service->about->get();		
-		
-		echo json_encode (
-			
-			isset ($about['login'])?
-				$about:
-				['profile'=> $about->getName ()]
-		);
+		echo $this->getProfile ();
 				
 		# WP crap
 		wp_die();
@@ -32,25 +25,14 @@ class API
 	 */
 	public function getBaseFolders ()
 	{
-		
-		// Get the API client and construct the service object.
-		$client = $this->getClient();
-		$service = new \Google_Service_Drive($client);
 		$list = [];
-		
-		$results = $service->children->listChildren('root',
-		[
-			'q'=> "mimeType='application/vnd.google-apps.folder'"
-		]);
+		$results = $this->getFolders ('root');
 		
 		// Iterate the base folders
-		foreach ($results->getItems() as $file)
-		{
-			$file = $service->files->get($file->getId ());
-			
-			$list[$file->getId ()] = $file->getTitle();
-		}
+		foreach ($results as $file)
 		
+			$list[$file->getId ()] = $file->getTitle();
+			
 		echo json_encode ($list);
 		
 		# WP crap
@@ -61,112 +43,22 @@ class API
 	 *	Get the Compare base
 	 */
 	public function getLayer ()
-	{
-		$parent = $_GET['folder'];
-		
-		// Get the API client and construct the service object.
-		$client = $this->getClient();
-		$service = new \Google_Service_Drive($client);
-		
+	{	
 		$list = [];
-		
-		$results = $service->children->listChildren($parent,
-		[
-			'q'=> "mimeType='application/vnd.google-apps.folder'"
-		]);
+		$results = $this->getFolders ($_GET['folder'], "title != 'flowdrive'");
 		
 		// Iterate the base folders
-		foreach ($results->getItems() as $file)
-		{
-			$file = $service->files->get($file->getId ());
-			
-			$list[$file->getId ()] = $file->getTitle();
-		}
+		foreach ($results as $file)
 		
+			$list[$file->getId ()] = $file->getTitle();
+			
 		echo json_encode ($list);
 		
 		# WP crap
 		wp_die();
 	}
 	
-	/**
-	 *	Create File
-	 */
-	public function createFile ($title, $parentId, $mimeType = 'text')
-	{
-		// Get the API client and construct the service object.
-		$client = $this->getClient();
-		$service = new \Google_Service_Drive($client);
-		
-		$file = new \Google_Service_Drive_DriveFile();
-		$file->setTitle ($title);
-		$file->setMimeType ($mimeType);
-		
-		$parent = new \Google_Service_Drive_ParentReference();
-		$parent->setId($parentId);
-		$file->setParents([$parent]);
-		
-		$data = "basics\nand stuff";
-
-	    $createdFile = $service->files->insert($file, array(
-	      'data' => $data,
-	      'mimeType' => $mimeType,
-	    ));
-		
-		# WP crap
-		wp_die();
-	}
 	
-		
-	/**
-	 *	Get Folder
-	 */
-	public function getFolder ($title)
-	{
-		
-		// Get the API client and construct the service object.
-		$client = $this->getClient();
-		$service = new \Google_Service_Drive($client);
-		
-		$results = $service->children->listChildren('root',
-		[
-			'maxResults' => 1,
-			'q'=> "mimeType='application/vnd.google-apps.folder' and title='{$title}'"
-		]);
-		
-		// Iterate the base folders
-		foreach ($results->getItems() as $file)
-		
-			echo $file->getId ();
-		
-		# WP crap
-		wp_die();
-	}
-	
-	/**
-	 *	Create Folder
-	 */
-	public function createFolder ($title)
-	{
-		$file = new \Google_Service_Drive_DriveFile();
-		$file->setTitle ($title);
-		$file->setMimeType ('application/vnd.google-apps.folder');
-		
-		/*$parent = new \Google_Service_Drive_ParentReference();
-		$parent->setId('root');
-		$file->setParents([$parent]);
-		
-		$data = file_get_contents($filename);
-
-	    $createdFile = $service->files->insert($file, array(
-	      'data' => $data,
-	      'mimeType' => $mimeType,
-	    ));*/
-		
-		# WP crap
-		wp_die();
-	}
-
 
 	/**
 	 *	Select items list
@@ -175,73 +67,77 @@ class API
 	{
 		// Dynamics
 		$list = [];
+		$flag = $_GET['flag'];
+		$selected = $_GET['selected'];
 		
+		// Hardcoded folders
+		$folders = [
+			'Production'=> "0B28Pui76yHNeWnpVdjhfWmNUWms",
+			'content'=> "0B28Pui76yHNeMGhpcGNTRmZlVG8",
+			'advertorial'=> "0B28Pui76yHNeamZ1YkliMmZrX2s",
+			'agenda'=> "0B28Pui76yHNeRHNHMUtLZVcyS0k",
+			'articles'=> "0B28Pui76yHNedGZhMHhFSnhER3c",
+			'production'=> "0B28Pui76yHNecTYzSjRSVGtDb3M"
+		];
+		
+		$posttypes = [
+			'advertorial'=> 'advertorial',
+			'agenda'=> 'calendar', 
+			'articles'=> 'post', 
+			'production'=> 'product', 
+		];
 		
 		// Get the API client and construct the service object.
 		$client = $this->getClient();
 		$service = new \Google_Service_Drive($client);
 		
-		// NON_DYNAMIC FOR NOW
-		// POSTTYPE LEVEL
-		/*$results = $service->children->listChildren($_GET['selected'], [
-			'q'=> "mimeType='application/vnd.google-apps.folder' and title = 'Production'"
-		]);
-		$results = $results->getItems();
 		
-		$results = $service->children->listChildren($results[0]->getId (), [
-			'q'=> "mimeType='application/vnd.google-apps.folder' and title = 'content'"
-		]);
-		$results = $results->getItems();
-		
-		echo $results[0]->getId ();
-		wp_die();*/
-		
-		// POSTTYPE
-		$results = $service->children->listChildren("0B28Pui76yHNeMGhpcGNTRmZlVG8", [
-			'q'=> "mimeType='application/vnd.google-apps.folder' and title = '" . $_GET['flag'] . "'"
-		]);
-		$results = $results->getItems();
-		
-		// CATEGORIES
-		$results = $service->children->listChildren($results[0]->getId (), [
-			'q'=> "mimeType='application/vnd.google-apps.folder'"
-		]);
-		
-		foreach ($results->getItems() as $cat)
+		// Cat/Tag folders
+		if (in_array ($flag, ['agenda', 'production']))
 		{
-			$folder = $service->files->get($cat->getId ());
-			$catname = $folder->getTitle();
+			$results = $this->getFolders ($folders[$flag], null, $service);
 			
-			$list[$catname] = [];
-			
-			$subresults = $service->children->listChildren($cat->getId (), [
-				'q'=> "mimeType='application/vnd.google-apps.folder'"
-			]);
-			
-			foreach ($subresults->getItems() as $file)
-			{
-				$file = $service->files->get($file->getId ());
+			foreach ($results as $category)
+			{	
+				$catname = $category->getTitle();
 				
-				$list[$catname][$file->getId ()] = [
-					'title'=> $file->getTitle()
-				];	
-			}
+				$list[$catname] = [];
+				
+				$subresults = $this->getFolders ($category->getId (), null, $service);
+				
+				foreach ($subresults as $item)
+					
+					$list[$catname][$item->getId ()] = [
+						'title'=> $item->getTitle(),
+						'post_type' => $posttypes [$flag],
+						'taxonomy'=> $category->getId (),
+						'base'=> $selected
+					];	
+			}	
+		} 
+		
+		// Direct items
+		else 
+		{
+			$results = $this->getFolders ($folders[$flag], null, $service);
+			
+			foreach ($results as $item)
+					
+					$list[0][$item->getId ()] = [
+						'title'=> $item->getTitle(),
+						'post_type' => $posttypes [$flag],
+						'base'=> $selected
+					];	
 		}
 		
-		$posttypes = [
-			'advertorial'=> 'advertorial',
-			'agenda'=> 'calendar',
-			'articles'=> 'post',
-			'production'=> 'product'
-		];
 		
-
+		// Compare with WP
 		foreach ($list as $catlist)
 			foreach ($catlist as $item)
 			{
 				$compare = new \WP_Query([
 					'posts_per_page' => 1,
-					'post_type' => $posttypes[$_GET['flag']],
+					'post_type' => $posttypes [$flag],
 					'title' => $item['title']
 				]);
 				
@@ -249,11 +145,9 @@ class API
 				{	
 					$compare->the_post();
 					$item['wp_id'] = get_the_ID ();
-					$itrm['post_type'] = $posttypes[$_GET['flag']];
 				}
 			}
 		
-		//$list['post_type'] = $posttypes[$_GET['flag']];
 		
 		echo json_encode ($list);
 		
@@ -300,7 +194,7 @@ class API
 		// Get content download
 		//$contents = $service->children->listChildren($_GET['folderId'], [
 		$contents = $service->files->listFiles([
-			'q'=> "(mimeType='text/plain' or mimeType='text/markdown' or mimeType='text/richtext' or mimeType='application/rtf' or mimeType='application/msword') and '{$list->folderId}' in parents and trashed=false"
+			'q'=> "(mimeType='text/plain' or mimeType='text/markdown' or mimeType='text/richtext' or mimeType='application/rtf' or mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document') and '{$list->folderId}' in parents and trashed=false"
 		]);
 		
 		foreach ($contents->getItems() as $file)
@@ -323,6 +217,10 @@ class API
 	 */
 	public function postItem ()
 	{
+		// Dynamics
+		$data = (object) $_POST['data'];
+		$files = (object) $_POST['files'];
+		
 		// Get the API client and construct the service object.
 		$client = $this->getClient();
 		$service = new \Google_Service_Drive($client);
@@ -336,20 +234,27 @@ class API
 			'post_name'=> sanitize_title($_POST['title']),
 			'post_content'=> '',
 			'post_status'=> 'pending',
-			'post_type'=> $_POST['post_type']?: 'calendar', // ¡HACK!
-			'post_category'=> []
+			'post_type'=> $data->post_type
 		];
 		
 		// Collect categories
-		foreach($_POST['cats'] as $cat) 
+		if(isset ($data->taxonomy))
+		{
+			$file = $service->files->get ($data->taxonomy);
+			if ($catid = term_exists ($file->getTitle())) $post['post_category'] = [(int) $catid];
+		}
+		
+		if(isset ($data->base))
+		{
+			// Wrong. Should be set_object_terms
 			
-			if ($cat && $cat != 'undefined') 
-				if ($catid = term_exists ($cat)) $post['post_category'][] = (int) $catid;
+			//$file = $service->files->get ($data->base);
+			//if ($catid = term_exists ($file->getTitle())) $post['post_category'][] = (int) $catid;
+		}
 
 		
+		
 		// Collect main content
-		$files = (object) $_POST['files'];
-
 		if (isset ($files->main))
 		{	
 			$request = new \Google_Http_Request($files->main, 'GET', null, null);
@@ -364,9 +269,16 @@ class API
 			$httpRequest = $service->getClient()->getAuth()->authenticatedRequest($request);
 			$post['post_excerpt'] = $httpRequest->getResponseBody();
 		}
-
+		
+		// DOC/DOCX/PAGES Solution?
+		// unzip -p somefile.docx word/document.xml | sed -e 's/<[^>]\{1,\}>//g; s/[^[:print:]]\{1,\}//g'
+		
+		
 		// Insert Post
 		$post_id = wp_insert_post ($post, false);
+		
+		// Add taxonomy - ISSUE 53
+		wp_set_object_terms( $post_id, 4422, 'magazine', true);
 
 		// Attach media
 		if(count ($_POST['media']))
@@ -423,7 +335,9 @@ class API
 			'post_status'    => 'inherit'
 		];
 		
-		wp_insert_attachment ($attach, $title, $post_id);
+		$attach_id = wp_insert_attachment ($attach, $title, $post_id);
+		
+		add_post_meta( $post_id, '_thumbnail_id', $attach_id, true);
 	}
 	
 	public function get_public_folder ($service)
@@ -466,108 +380,6 @@ class API
 		$service->permissions->insert($createdFile->getId(), $permission);
 		
 		return $createdFile->getId();
-	}
-	
-	
-	/**
-	 * Returns an authorized API client.
-	 * @return Google_Client the authorized client object
-	 */
-	public function getClient ()
-	{
-		$client = new \Google_Client();
-		$client->setApplicationName(APPLICATION_NAME);
-		$client->setScopes(SCOPES);
-		$client->setAuthConfigFile(CLIENT_SECRET_PATH);
-		$client->setAccessType('offline');
-		
-		// Load previously authorized credentials from a file.
-		$credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
-		if (file_exists($credentialsPath)) {
-			$accessToken = file_get_contents($credentialsPath);
-		} else {
-			
-			return ["login"=> $client->createAuthUrl()];
-			
-			// Request authorization from the user.
-			//$authUrl = $client->createAuthUrl();
-			//printf("Open the following link in your browser:\n%s\n", $authUrl);
-			//print 'Enter verification code: ';
-			$authCode = "4/3Osy8entunUDYEC-tamSMtjOkF7_ckxZ99_J65gXqpk#";//trim(fgets(STDIN));
-			
-			// Exchange authorization code for an access token.
-			$accessToken = $client->authenticate($authCode);
-			
-			// Store the credentials to disk.
-			if(!file_exists(dirname($credentialsPath))) {
-			mkdir(dirname($credentialsPath), 0700, true);
-			}
-			file_put_contents($credentialsPath, $accessToken);
-			printf("Credentials saved to %s\n", $credentialsPath);
-		}
-		$client->setAccessToken($accessToken);
-		
-		// Refresh the token if it's expired.
-		if ($client->isAccessTokenExpired()) {
-			$client->refreshToken($client->getRefreshToken());
-			file_put_contents($credentialsPath, $client->getAccessToken());
-		}
-		return $client;
-	}
-	
-	public function storeClient ()
-	{
-		$client = new \Google_Client();
-		$client->setApplicationName(APPLICATION_NAME);
-		$client->setScopes(SCOPES);
-		$client->setAuthConfigFile(CLIENT_SECRET_PATH);
-		$client->setAccessType('offline');
-		
-		// Load previously authorized credentials from a file.
-		$credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
-		if (file_exists($credentialsPath)) {
-			$accessToken = file_get_contents($credentialsPath);
-		} else {
-			
-			// Request authorization from the user.
-			//$authUrl = $client->createAuthUrl();
-			//printf("Open the following link in your browser:\n%s\n", $authUrl);
-			//print 'Enter verification code: ';
-			$authCode = "4/3Osy8entunUDYEC-tamSMtjOkF7_ckxZ99_J65gXqpk#";//trim(fgets(STDIN));
-			
-			// Exchange authorization code for an access token.
-			$accessToken = $client->authenticate($authCode);
-			
-			// Store the credentials to disk.
-			if(!file_exists(dirname($credentialsPath))) {
-			mkdir(dirname($credentialsPath), 0700, true);
-			}
-			file_put_contents($credentialsPath, $accessToken);
-			printf("Credentials saved to %s\n", $credentialsPath);
-		}
-		$client->setAccessToken($accessToken);
-		
-		// Refresh the token if it's expired.
-		if ($client->isAccessTokenExpired()) {
-			$client->refreshToken($client->getRefreshToken());
-			file_put_contents($credentialsPath, $client->getAccessToken());
-		}
-		return $client;
-	}
-			
-	/**
-	* Expands the home directory alias '~' to the full path.
-	* @param string $path the path to expand.
-	* @return string the expanded path.
-	*/
-	public function expandHomeDirectory($path)
-	{
-		$homeDirectory = getenv('HOME');
-		if (empty($homeDirectory)) {
-			$homeDirectory = getenv("HOMEDRIVE") . getenv("HOMEPATH");
-		}
-		
-		return str_replace('~', realpath($homeDirectory), $path);
 	}
 }
 

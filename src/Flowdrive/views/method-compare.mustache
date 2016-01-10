@@ -25,8 +25,6 @@
 	var basefolder = '{{flowdrive_basefolder}}';
 	var basepane = '#flowdrive-pane';
 	var wppane = '#wordpress-pane';
-	var taxonomy = '';
-	var post_type = '';
 	var folder = '';
 	
 	var structure = [
@@ -79,7 +77,6 @@
 		jQuery("<span class='folder' data-folder='" + key + "'>" + title + "</span>").appendTo(layer).on('click', function (el)
 		{
 			folder = jQuery(this).data('folder');
-			taxonomy = jQuery(this).text ();
 			
 			if(folder) {
 				
@@ -142,19 +139,20 @@
 			
 			for(cat in set)
 			{	
-				results.append("<li class='category'>" + cat + "</li>");
+				
+				if(cat) results.append("<li class='category'>" + cat + "</li>");
 				
 				for (id in set[cat])
-					
-					results.append("<li id='" + id + "' data-cat='" + cat + "'>" + set[cat][id].title + "</li>");
+				{
+					var li = jQuery("<li>" + set[cat][id].title + "</li>").appendTo(results).attr('id', id).attr('data-post_type', set[cat][id].post_type).attr('data-base', set[cat][id].base);
+					if(cat) li.attr('data-taxonomy', set[cat][id].taxonomy);
+				}
 			}
 			
 			results.find('li[id]').on('click', function (){
 				
-				fetchContent (this.id, jQuery(this).text(), jQuery(this).data('cat'));
+				fetchContent (this.id, jQuery(this).text());
 			});
-			
-			post_type = set.post_type;
 			
 		});
 		
@@ -162,11 +160,11 @@
 		var results = jQuery("<ul class='item-list'>Retrieving folders from Drive...</ul>").appendTo ('#flowdrive-pane');
 	}
 	
-	function fetchContent (id, title, cat)
+	function fetchContent (id, title)
 	{
 		xget('get_folder_contents', {folderId: id, title: title}, displayContent)
 		
-		jQuery(wppane).html("Retreiving item...").attr('data-cat', cat);
+		jQuery(wppane).html("Retreiving item...").attr('data-ref', id);
 	}
 	
 	function displayContent (set)
@@ -187,7 +185,7 @@
 			jQuery("<li></li>").appendTo(thlist).attr('id', n).attr('title', set.media[n].title).addClass('active').css('background-image', 'url(' + set.media[n].thumbnail + ')')
 				.on('click', function(){ jQuery(this).toggleClass('active') });
 			
-		var submit = jQuery("<div class='submit-row'><select><option>as draft</option></select></div>").appendTo(wppane);
+		var submit = jQuery("<div class='submit-row'><select><option>as pending</option></select></div>").appendTo(wppane);
 		
 		jQuery("<button>Compose</button>").appendTo(submit).on('click', function ()
 		{
@@ -203,9 +201,20 @@
 			var media = [];
 			jQuery('.thumbnails-list li.active').each(function(n, el) { media.push(this.id)});
 			
-			var cat = jQuery(wppane).data('cat');
+			// li ref
+			var li = jQuery('#' + jQuery(wppane).data('ref'));
 			
-			xpost('post_item', {folderId: set.folderId, title: set.title, post_type: post_type, files: files, media: media, cats:[taxonomy, cat]}, postSuccess)
+			xpost('post_item', {
+				folderId: set.folderId, 
+				title: set.title,
+				files: files, 
+				media: media, 
+				data:{
+					taxonomy: li.data('taxonomy'),
+					post_type: li.data('post_type'),
+					base: li.data('base') 
+				}
+			}, postSuccess);
 		});
 	}
 	

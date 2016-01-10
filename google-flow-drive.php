@@ -53,9 +53,13 @@ define('APPLICATION_NAME', 'Drive API PHP Quickstart');
 
 define('CREDENTIALS_PATH', '~/.credentials/drive-php-quickstart.json');
 
-define('CLIENT_SECRET_PATH', __DIR__ . '/client_secret_763043149136-l5rg0tmia12r8aefqoukb1jcq876ejfj.apps.googleusercontent.com.json');
+define('CLIENT_SECRET_PATH', __DIR__ . '/client_secret_763043149136-l5rg0tmia12r8aefqoukb1jcq876ejfj.apps.googleusercontent.com.json'); //Server: 
 
 define('SCOPES', 'https://www.googleapis.com/auth/drive');
+
+define('AUTHCODE', "4/3Osy8entunUDYEC-tamSMtjOkF7_ckxZ99_J65gXqpk#"); // Server: "4/hzpVlRdeErrnupRmRGkBD24yi7GlDXGUh5cILkclum4#";
+
+
 
 /**
  *	The code that runs during plugin activation.

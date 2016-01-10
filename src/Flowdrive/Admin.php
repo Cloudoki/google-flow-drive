@@ -90,17 +90,7 @@ class Admin
 	 * @since    1.0.0
 	 */
 	public function view_Compare ($params = [])
-	{		
-		// One time ony
-		
-		
-		// Manual store
-		// $api = new API();
-		// $api->storeClient ();	
-		
-		
-		//$file = $api->createFile ('.flowdrive', get_option("flowdrive_basefolder"));
-		
+	{
 		$params = [
 			'title'=> get_admin_page_title(),
 			"flowdrive_basefolder"=> get_option("flowdrive_basefolder")
@@ -112,6 +102,59 @@ class Admin
 			->render($params);
 	}
 	
+	/**
+	 * Flowdrive Dashboard.
+	 *
+	 * @since    1.0.0
+	 */
+	public function dashboard ()
+	{
+		wp_add_dashboard_widget( 'flowdrive-widget', 'Flow Drive', array( $this, 'dashboard_widget' ));
+		
+		$params = [
+			'title'=> get_admin_page_title(),
+			"flowdrive_basefolder"=> get_option("flowdrive_basefolder")
+		];
+	}
+	
+	/**
+	 * Flowdrive Dashboard Widget.
+	 *
+	 * @since    1.0.0
+	 */
+	public function dashboard_widget ()
+	{
+		$args = array(
+	        'post_type'      => ['post','calendar','product'],
+	        'post_status'    => 'pending',
+	        'orderby'        => 'date',
+	        'order'          => 'ASC',
+	        'posts_per_page' => 999
+	    );
+		
+		$flow_posts = get_posts($args); //new WP_Query($query_args);
+		$count = count($flow_posts);
+		
+		# Render template
+		echo $this->mustache->loadTemplate('dashboard-widget')
+			->render(['pending'=> $count? $flow_posts: null, 'pending_count'=> $count]);
+	}
+	
+	/**
+	 * Flowdrive Filters.
+	 *
+	 * @since    1.0.0
+	 */
+	public function filter_image_downsize ($wp_crap, $attachId, $size)
+	{
+		$attach = get_post ($attachId);
+		
+		return ($attach && strpos ($attach->guid, 'https://googledrive.com') !== false)?
+			
+			[$attach->guid, $size[0], $size[1], false]
+			: null;
+		
+	}
 }
 
 ?>

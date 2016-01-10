@@ -1,0 +1,37 @@
+<style>
+	
+#flow-pending ul {
+	max-height: 400px;
+	overflow-y: scroll;
+}
+
+
+#flow-pending lh {
+	display: block;
+	padding-bottom: 4px;
+	border-bottom: 1px solid #ddd;
+	color: #999;
+}
+
+#flow-pending li {
+	padding: 4px;
+	border: 0;
+}
+
+#flow-pending li:nth-child(odd) { background: #eaf7f9; }
+
+#flow-pending .pull-right { float: right; }	
+</style>
+
+<div id='flow-pending'>
+	<ul>
+	<lh><small class='pull-right'>type</small>Pending items ({{pending_count}})</lh>
+	
+	{{#pending}}
+		<li><small class='pull-right'>{{post_type}}</small><a href='post.php?post={{ID}}&action=edit'>{{post_title}}</a></li>
+	{{/pending}}
+	
+	{{^pending}}<li><i>No pending posts</i></li>{{/pending}}
+	
+	</ul>
+</div>

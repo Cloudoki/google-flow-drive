@@ -4,6 +4,7 @@ namespace Cloudoki\Flowdrive;
 use Cloudoki\Flowdrive\BaseLoader;
 use Cloudoki\Flowdrive\Nav;
 use Cloudoki\Flowdrive\API;
+use Cloudoki\Flowdrive\Admin;
 
 class Flowdrive extends BaseLoader
 {
@@ -33,6 +34,7 @@ class Flowdrive extends BaseLoader
 		# Components
 		$this->nav = new Nav ();
 		$this->api = new API ();
+		$this->admin = new Admin ();
 		
 		# Define hooks
 		$this->enqueue ();
@@ -84,15 +86,16 @@ class Flowdrive extends BaseLoader
 	 * @access   private
 	 */
 	private function admin_hooks() {
-
+		
+		// Actions
 		// Load Nav injection
 		$this->add_action ('admin_menu', $this->nav, 'plugin_menu' );
 		
 		// Load Dashboard widget
-		// $this->add_action ('wp_dashboard_setup', $this->admin, 'admin_dashboard' );
+		$this->add_action ('wp_dashboard_setup', $this->admin, 'dashboard');
 		
 		// Load Edit Post additions
-		// $this->add_action ('add_meta_boxes', $this->admin, 'admin_post' );
+		// $this->add_action ('add_meta_boxes', $this->admin, 'post_edit' );
 
 		// Load social toggles on submitbox, if the setting is available
 		// if (get_option('smmp_view_submitbox'))
@@ -108,6 +111,10 @@ class Flowdrive extends BaseLoader
 		{
 			$this->add_action ('admin_notices', $this->admin, 'notice_accounts' );
 		}*/
+		
+		// Filters
+		// Prevent inner links for flow-drive images
+		$this->add_action ('image_downsize', $this->admin, 'filter_image_downsize', 10, 3);
 	}
 	
 	/**
@@ -120,7 +127,7 @@ class Flowdrive extends BaseLoader
 	private function admin_ajax_routing() {
 
 		// Load API injection
-		$this->add_action( 'wp_ajax_flowdrive_get_profile', $this->api, 'getProfile');
+		$this->add_action( 'wp_ajax_flowdrive_get_profile', $this->api, 'getUserProfile');
 		$this->add_action( 'wp_ajax_flowdrive_get_base_folders', $this->api, 'getBaseFolders');
 		$this->add_action( 'wp_ajax_flowdrive_get_layer', $this->api, 'getLayer');
 		$this->add_action( 'wp_ajax_flowdrive_compare', $this->api, 'compare');
